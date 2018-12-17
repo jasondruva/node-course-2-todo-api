@@ -30,6 +30,26 @@ app.post('/todos', (req, res) =>
     });
 });
 
+app.get('/todos', (req, res) => 
+{
+    TodoModel.find().then((todos) =>
+    {
+        console.log('All todos', todos);
+
+        //Use object vs array for more flexibility
+        res.status(200).send(
+        {
+            todos
+        });
+    },
+    (e) => 
+    {
+        console.log('Unable to fetch todos: ', e);
+
+        res.status(400).send('An error occurred: ' + e);
+    });    
+});
+
 app.listen(3000, () =>
 {
    console.log('Running on port 3000');

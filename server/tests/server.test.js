@@ -74,3 +74,52 @@ describe('POST /todos', () =>
         });
     });
 });
+
+describe('GET /todos', () => 
+{
+    it('Should get all todos', (done) => 
+    {
+        request(app)
+        .get('/todos')
+        .send()
+        .expect(200)            
+        .end((err, res) => 
+        {
+            if (err) {
+                return done(err);
+            }
+
+            TodoModel.find().then((todos) => 
+            {
+                expect(todos.length).toBe(0);
+
+                done();
+            })
+            .catch((e) => 
+            {
+                return done(e);
+            });
+        });
+    });
+
+    // it('Should NOT create a new todo', (done) => {
+    //     request(app)
+    //         .post('/todos')
+    //         .send({})
+    //         .expect(400)
+    //         .end((err, res) => {
+    //             if (err) {
+    //                 return done(err);
+    //             }
+
+    //             TodoModel.find().then((todos) => {
+    //                     expect(todos.length).toBe(0);
+
+    //                     done();
+    //                 })
+    //                 .catch((e) => {
+    //                     return done(e);
+    //                 });
+    //         });
+    // });
+});
