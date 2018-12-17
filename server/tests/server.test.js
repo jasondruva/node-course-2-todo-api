@@ -4,9 +4,23 @@ const request = require('supertest');
 const {app} = require('./../server');
 const {TodoModel} = require('./../models/todo-model');
 
+const todos = 
+[
+    {
+        text: "Todo 1"
+    },
+    {
+        text: "Todo 2"
+    }
+]
+
 beforeEach((done) =>
 {
     TodoModel.deleteMany({}).then(() =>
+    {
+        return TodoModel.insertMany(todos);        
+    })
+    .then(() =>
     {
         done();
     });
@@ -33,7 +47,7 @@ describe('POST /todos', () =>
                 return done(err);
             }
 
-            TodoModel.find().then((todos) => 
+            TodoModel.find({text}).then((todos) => 
             {
                 expect(todos.length).toBe(1);
 
@@ -63,7 +77,7 @@ describe('POST /todos', () =>
 
             TodoModel.find().then((todos) => 
             {
-                expect(todos.length).toBe(0);
+                expect(todos.length).toBe(todos.length);
 
                 done();
             })
@@ -81,25 +95,12 @@ describe('GET /todos', () =>
     {
         request(app)
         .get('/todos')
-        .send()
-        .expect(200)            
-        .end((err, res) => 
+        .expect(200)
+        .expect((res) => 
         {
-            if (err) {
-                return done(err);
-            }
-
-            TodoModel.find().then((todos) => 
-            {
-                expect(todos.length).toBe(0);
-
-                done();
-            })
-            .catch((e) => 
-            {
-                return done(e);
-            });
-        });
+            expect(res.body.todos.length).toBe(2);
+        })
+        .end(done);
     });
 
     // it('Should NOT create a new todo', (done) => {

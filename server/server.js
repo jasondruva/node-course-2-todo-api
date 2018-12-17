@@ -18,13 +18,13 @@ app.post('/todos', (req, res) =>
 
     newTodo.save().then((doc)=>
     {
-        console.log('Saved todo', doc);
+        //console.log('Saved todo', doc);
 
         res.status(200).send(doc);
     },
     (e) =>
     {
-        console.log('Unable to save todo: ', e);
+        //console.log('Unable to save todo: ', e);
 
         res.status(400).send('An error occurred: ' + e);
     });
@@ -34,7 +34,7 @@ app.get('/todos', (req, res) =>
 {
     TodoModel.find().then((todos) =>
     {
-        console.log('All todos', todos);
+        //console.log('All todos', todos);
 
         //Use object vs array for more flexibility
         res.status(200).send(
@@ -44,7 +44,7 @@ app.get('/todos', (req, res) =>
     },
     (e) => 
     {
-        console.log('Unable to fetch todos: ', e);
+        //console.log('Unable to fetch todos: ', e);
 
         res.status(400).send('An error occurred: ' + e);
     });    
