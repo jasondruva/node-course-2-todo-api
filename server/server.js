@@ -25,7 +25,7 @@ app.post('/todos', (req, res) =>
     (e) =>
     {
         console.log('Unable to save todo: ', e);
-        
+
         res.status(400).send('An error occurred: ' + e);
     });
 });
@@ -62,3 +62,8 @@ app.listen(3000, () =>
 // (e) => {
 //     console.log('Unable to save user: ', e);
 // });
+
+module.exports = 
+{
+    app
+}
