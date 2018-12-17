@@ -3,13 +3,16 @@ const request = require('supertest');
 
 const {app} = require('./../server');
 const {TodoModel} = require('./../models/todo-model');
+const {ObjectID} = require('mongodb');
 
 const todos = 
 [
     {
+        _id: new ObjectID(),
         text: "Todo 1"
     },
     {
+        _id: new ObjectID(),
         text: "Todo 2"
     }
 ]
@@ -92,7 +95,7 @@ describe('POST /todos', () =>
 describe('GET /todos', () => 
 {
     it('Should get all todos', (done) => 
-    {
+    {        
         request(app)
         .get('/todos')
         .expect(200)
@@ -123,4 +126,40 @@ describe('GET /todos', () =>
     //                 });
     //         });
     // });
+});
+
+describe('GET /todos/:id', () => 
+{
+    it('Should get a todo by id', (done) => 
+    {
+        //console.log(JSON.stringify(todos, undefined, 4));
+        request(app)
+        .get(`/todos/${todos[0]._id.toHexString()}`)
+        .expect(200)
+        .expect((res) => 
+        {
+            expect(res.body.todo.text).toBe(todos[0].text);
+        })
+        .end(done);
+    });
+
+    it('Should NOT get a todo due to bad id', (done) => 
+    {
+        //console.log(JSON.stringify(todos, undefined, 4));
+        request(app)
+        .get('/todos/123')
+        .expect(404)            
+        .end(done);
+    });
+
+    it('Should NOT get a todo due to invalid id', (done) => 
+    {        
+        var badId = new ObjectID().toHexString();
+
+        //console.log(JSON.stringify(todos, undefined, 4));
+        request(app)
+        .get(`/todos/${badId}`)
+        .expect(404)
+        .end(done);
+    });
 });
