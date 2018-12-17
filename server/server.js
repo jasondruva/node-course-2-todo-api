@@ -1,25 +1,39 @@
-const mongoose = require('mongoose');
+const express = require('express');
+const bodyParser = require('body-parser');
 
-mongoose.Promise = global.Promise; //tell mongoose to use native promises
-mongoose.connect('mongodb://localhost:27017/TodoApp');
+const {mongoose} = require('./mongoose');
+const {TodoModel} = require('./models/todo-model');
+const {UserModel} = require('./models/user-model');
 
-// var Todo = mongoose.model('Todo', 
-// {
-//     text: {
-//         type: String,
-//         required: true,
-//         minLength: 1,
-//         trim: true
-//     },
-//     completed: {
-//         type: Boolean,
-//         default: false
-//     },
-//     completedAt: {
-//         type: Number,
-//         default: null
-//     }
-// });
+var app = express();
+
+app.use(bodyParser.json());
+
+app.post('/todos', (req, res) =>
+{
+    var newTodo = new TodoModel(
+    {
+        text: req.body.text        
+    });
+
+    newTodo.save().then((doc)=>
+    {
+        console.log('Saved todo', doc);
+
+        res.status(200).send(doc);
+    },
+    (e) =>
+    {
+        console.log('Unable to save todo: ', e);
+        
+        res.status(400).send('An error occurred: ' + e);
+    });
+});
+
+app.listen(3000, () =>
+{
+   console.log('Running on port 3000');
+});
 
 // var newTodo = new Todo({
 //     text: 'Have breakfast',   
@@ -36,25 +50,15 @@ mongoose.connect('mongodb://localhost:27017/TodoApp');
 //     console.log('Unable to save todo: ', e);
 // });
 
-var User = mongoose.model('User', 
-{
-    email: 
-    {
-        type: String,
-        required: true,
-        minLength: 1,        
-        trim: true
-    }
-});
 
-var newUser = new User({
-    email: ' test2@test2.test2 '
-});
+// var newUser = new UserModel({
+//     email: ' test3@test3.test3 '
+// });
 
-newUser.save().then((doc) => 
-{
-    console.log('Saved user', doc);
-},
-(e) => {
-    console.log('Unable to save user: ', e);
-});
+// newUser.save().then((doc) => 
+// {
+//     console.log('Saved user', doc);
+// },
+// (e) => {
+//     console.log('Unable to save user: ', e);
+// });
