@@ -168,15 +168,32 @@ describe('DELETE /todos/:id', () =>
 {
     it('Should delete a todo by id', (done) => 
     {
+        var todoId = todos[0]._id.toHexString();
+
         //console.log(JSON.stringify(todos, undefined, 4));
         request(app)
-            .delete(`/todos/${todos[0]._id.toHexString()}`)
+            .delete(`/todos/${todoId}`)
             .expect(200)
             .expect((res) => 
             {
-                expect(res.body.todo.text).toBe(todos[0].text);
+                expect(res.body.todo._id).toBe(todoId);
+                //expect(res.body.todo.text).toBe(todos[0].text);
             })
-            .end(done);
+            .end((err, res) =>
+            {
+                if(err)
+                {
+                    return done(err);
+                }
+
+                TodoModel.findById(res.body.todo._id).then((todo) => 
+                {
+                    expect(todo).toBeFalsy();
+
+                    done();
+                })
+                .catch((e) => done(e));
+            });
     });
 
     it('Should NOT delete a todo due to bad id', (done) => 
