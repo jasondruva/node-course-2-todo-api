@@ -163,3 +163,39 @@ describe('GET /todos/:id', () =>
         .end(done);
     });
 });
+
+describe('DELETE /todos/:id', () => 
+{
+    it('Should delete a todo by id', (done) => 
+    {
+        //console.log(JSON.stringify(todos, undefined, 4));
+        request(app)
+            .delete(`/todos/${todos[0]._id.toHexString()}`)
+            .expect(200)
+            .expect((res) => 
+            {
+                expect(res.body.todo.text).toBe(todos[0].text);
+            })
+            .end(done);
+    });
+
+    it('Should NOT delete a todo due to bad id', (done) => 
+    {
+        //console.log(JSON.stringify(todos, undefined, 4));
+        request(app)
+            .delete('/todos/123')
+            .expect(404)
+            .end(done);
+    });
+
+    it('Should NOT delete a todo due to invalid id', (done) => 
+    {
+        var badId = new ObjectID().toHexString();
+
+        //console.log(JSON.stringify(todos, undefined, 4));
+        request(app)
+            .delete(`/todos/${badId}`)
+            .expect(404)
+            .end(done);
+    });
+});

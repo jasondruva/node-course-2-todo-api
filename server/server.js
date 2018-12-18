@@ -6,6 +6,8 @@ const {TodoModel} = require('./models/todo-model');
 const {UserModel} = require('./models/user-model');
 const {ObjectID} = require('mongodb');
 
+const port = process.env.PORT || 3000;
+
 var app = express();
 
 app.use(bodyParser.json());
@@ -80,9 +82,40 @@ app.get('/todos/:id', (req, res) =>
     });
 });
 
-app.listen(3000, () =>
+app.delete('/todos/:id', (req, res) => 
 {
-   console.log('Running on port 3000');
+    var todoId = req.params.id;
+
+    if (!ObjectID.isValid(todoId)) 
+    {
+        //console.log('INVALID TODO ID: ', todoId);
+
+        return res.status(404).send('INVALID ID');
+    }
+
+    TodoModel.findByIdAndDelete(todoId).then((todo) => 
+    {
+        if (!todo) 
+        {
+            return res.status(404).send('TODO NOT FOUND');
+        }
+        
+        //Use object vs array for more flexibility
+        res.status(200).send(
+        {
+            todo
+        });
+    },
+    (e) => 
+    {
+
+        return res.status(400).send('AN ERROR OCCURRED');
+    });
+});
+
+app.listen(port, () =>
+{
+   console.log(`Running on port ${port}`);
 });
 
 // var newTodo = new Todo({
