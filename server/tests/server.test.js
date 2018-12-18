@@ -9,11 +9,13 @@ const todos =
 [
     {
         _id: new ObjectID(),
-        text: "Todo 1"
+        text: "Todo 1"        
     },
     {
         _id: new ObjectID(),
-        text: "Todo 2"
+        text: "Todo 2",
+        completed: true,
+        completedAt: 123
     }
 ]
 
@@ -212,6 +214,68 @@ describe('DELETE /todos/:id', () =>
         //console.log(JSON.stringify(todos, undefined, 4));
         request(app)
             .delete(`/todos/${badId}`)
+            .expect(404)
+            .end(done);
+    });
+});
+
+describe('PATCH /todos/:id', () => {
+    it('Should patch a todo by id and should be completed', (done) => 
+    {
+        var todoId = todos[0]._id.toHexString();
+
+        //console.log(JSON.stringify(todos, undefined, 4));
+        request(app)
+            .patch(`/todos/${todoId}`)
+            .send(
+                {
+                    completed: true,
+                    text: 'Updated todo'
+                })
+            .expect(200)
+            .expect((res) => 
+            {
+                expect(res.body.todo._id).toBe(todoId);
+                expect(res.body.todo.completed).toBe(true);
+                expect(res.body.todo.text).toBe('Updated todo');
+                expect(typeof res.body.todo.completedAt).toBe('number');
+            })
+            .end(done);
+    });
+
+    it('Should patch a todo by id and should NOT be completed', (done) => {
+        var todoId = todos[1]._id.toHexString();
+
+        //console.log(JSON.stringify(todos, undefined, 4));
+        request(app)
+            .patch(`/todos/${todoId}`)
+            .send({
+                completed: false
+            })
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.todo._id).toBe(todoId);
+                expect(res.body.todo.completed).toBe(false);
+                expect(res.body.todo.text).toBe(todos[1].text);
+                expect(res.body.todo.completedAt).toBeNull();
+            })
+            .end(done);
+    });
+
+    it('Should NOT patch a todo due to bad id', (done) => {
+        //console.log(JSON.stringify(todos, undefined, 4));
+        request(app)
+            .patch('/todos/123')
+            .expect(404)
+            .end(done);
+    });
+
+    it('Should NOT patch a todo due to invalid id', (done) => {
+        var badId = new ObjectID().toHexString();
+
+        //console.log(JSON.stringify(todos, undefined, 4));
+        request(app)
+            .patch(`/todos/${badId}`)
             .expect(404)
             .end(done);
     });

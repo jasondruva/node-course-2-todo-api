@@ -1,5 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const _ = require('lodash');
 
 const {mongoose} = require('./mongoose');
 const {TodoModel} = require('./models/todo-model');
@@ -109,6 +110,54 @@ app.delete('/todos/:id', (req, res) =>
     (e) => 
     {
 
+        return res.status(400).send('AN ERROR OCCURRED');
+    });
+});
+
+app.patch('/todos/:id', (req, res) => 
+{
+    var todoId = req.params.id;
+    var body = _.pick(req.body, ['text','completed']);
+
+    if (!ObjectID.isValid(todoId)) 
+    {
+        //console.log('INVALID TODO ID: ', todoId);
+
+        return res.status(404).send('INVALID ID');
+    }
+
+    if(_.isBoolean(body.completed) &&
+        body.completed)
+    {
+        body.completedAt = new Date().getTime();
+    }
+    else
+    {
+        body.completed = false;
+        body.completedAt = null;
+    }
+
+    TodoModel.findByIdAndUpdate(todoId, 
+    {
+        $set: body
+    },
+    {
+        new: true
+    }).then((todo) => 
+    {
+        if (!todo) 
+        {
+            return res.status(404).send('TODO NOT FOUND');
+        }
+
+        //Use object vs array for more flexibility
+        res.status(200).send(
+        {
+            todo
+        });
+    },
+    (e) => 
+    {
         return res.status(400).send('AN ERROR OCCURRED');
     });
 });
