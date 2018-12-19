@@ -13,6 +13,32 @@ var app = express();
 
 app.use(bodyParser.json());
 
+app.post('/users', (req, res) => 
+{
+    console.log('body: ', req.body);
+
+    var body = _.pick(req.body, ['email', 'password']);
+    var newUser = new UserModel(body);
+
+    console.log('newUser: ', newUser);
+
+    newUser.save().then(() => 
+    {        
+        return newUser.generateAuthToken();        
+    })
+    .then((token) =>
+    {
+        res.header('x-auth', token).send(newUser);
+    })
+    .catch(
+    (e) => 
+    {
+        console.log('Unable to save todo: ', e);
+
+        res.status(400).send('An error occurred: ' + e);
+    });
+});
+
 app.post('/todos', (req, res) =>
 {
     var newTodo = new TodoModel(
