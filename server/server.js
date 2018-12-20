@@ -6,12 +6,40 @@ const {mongoose} = require('./mongoose');
 const {TodoModel} = require('./models/todo-model');
 const {UserModel} = require('./models/user-model');
 const {ObjectID} = require('mongodb');
+const {authenticate} = require('./middleware/authenticate');
+
+//console.log('server.js - authenticate: ', authenticate);
 
 const port = process.env.PORT || 3000;
 
 var app = express();
 
 app.use(bodyParser.json());
+
+app.get('/users/me', authenticate, (req, res) =>
+{    
+    res.send(req.user);
+
+    // var token = req.header('x-auth');
+
+    // console.log('token: ', token);
+
+    // UserModel.findByToken(token).then((user) =>
+    // {
+    //     if(!user)
+    //     {
+    //         console.log('Unable to find user: ', JSON.stringify(user));
+
+    //         return Promise.reject(); //This will fire the catch block so saves the duplication
+    //     }
+
+    //     res.send(user);
+    // })
+    // .catch((e) =>
+    // {
+    //     res.status(401).send();
+    // });
+});
 
 app.post('/users', (req, res) => 
 {
@@ -20,7 +48,7 @@ app.post('/users', (req, res) =>
     var body = _.pick(req.body, ['email', 'password']);
     var newUser = new UserModel(body);
 
-    console.log('newUser: ', newUser);
+    //console.log('newUser: ', newUser);
 
     newUser.save().then(() => 
     {        

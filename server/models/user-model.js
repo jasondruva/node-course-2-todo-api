@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const _ = require('lodash');
+const bcrypt = require('bcryptjs');
 
 var UserSchema = new mongoose.Schema(
 {
@@ -32,6 +33,56 @@ var UserSchema = new mongoose.Schema(
             required: true
         }
     }]
+});
+
+UserSchema.statics.findByToken = function(token)
+{
+    var User = this;
+    var decoded;
+
+    try
+    {
+        decoded = jwt.verify(token, 'abc123');
+    }
+    catch(e)
+    {
+        // return new Promise((resolve, reject) =>
+        // {
+        //     reject();
+        // });
+
+        return Promise.reject(); //Same as commented out code above
+    }
+
+    //console.log('decoded: ', decoded);
+
+    return User.findOne({
+        '_id': decoded._id,
+        'tokens.token': token,
+        'tokens.access': 'auth'
+    });
+};
+
+UserSchema.pre('save', function(next)
+{
+    var user = this;
+
+    if(user.isModified('password'))
+    {
+        var salt = bcrypt.genSalt(10, (err, salt) => {
+            bcrypt.hash(user.password, salt, (err, hash) => {
+                console.log('USER PASSWORD: ', user.password);
+                console.log('HASH: ', hash);
+                user.password = hash;
+
+                next(); //Super important to call this otherwise big problems occur
+            });
+        });
+    }
+    else
+    {
+        next(); //Super important to call this otherwise big problems occur
+    }
 });
 
 //Method override

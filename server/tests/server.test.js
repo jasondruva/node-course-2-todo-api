@@ -17,7 +17,7 @@ const todos =
         completed: true,
         completedAt: 123
     }
-]
+];
 
 beforeEach((done) =>
 {
@@ -25,10 +25,7 @@ beforeEach((done) =>
     {
         return TodoModel.insertMany(todos);        
     })
-    .then(() =>
-    {
-        done();
-    });
+    .then(() => done());
 });
 
 describe('POST /todos', () =>
