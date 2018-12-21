@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const _ = require('lodash');
+const bcrypt = require('bcryptjs');
 
 const {mongoose} = require('./mongoose');
 const {TodoModel} = require('./models/todo-model');
@@ -16,34 +17,54 @@ var app = express();
 
 app.use(bodyParser.json());
 
+app.post('/users/login', (req, res) => 
+{
+    var body = _.pick(req.body, ['email', 'password']);
+    
+    //console.log('BODY: ', body);
+
+    UserModel.findByCredentials(body.email, body.password).then((user) =>
+    {
+        //console.log('USER: ', user);
+        return user.generateAuthToken().then((token) =>
+        {
+            res.header('x-auth', token).send(user);
+        });
+    })
+    .catch((e) =>
+    {
+        res.status(400).send();
+    });
+});
+
 app.get('/users/me', authenticate, (req, res) =>
 {    
     res.send(req.user);
 
-    // var token = req.header('x-auth');
+    var token = req.header('x-auth');
 
-    // console.log('token: ', token);
+    console.log('token: ', token);
 
-    // UserModel.findByToken(token).then((user) =>
-    // {
-    //     if(!user)
-    //     {
-    //         console.log('Unable to find user: ', JSON.stringify(user));
+    UserModel.findByToken(token).then((user) =>
+    {
+        if(!user)
+        {
+            //console.log('Unable to find user: ', JSON.stringify(user));
 
-    //         return Promise.reject(); //This will fire the catch block so saves the duplication
-    //     }
+            return Promise.reject(); //This will fire the catch block so saves the duplication
+        }
 
-    //     res.send(user);
-    // })
-    // .catch((e) =>
-    // {
-    //     res.status(401).send();
-    // });
+        res.send(user);
+    })
+    .catch((e) =>
+    {
+        res.status(401).send();
+    });
 });
 
 app.post('/users', (req, res) => 
 {
-    console.log('body: ', req.body);
+    //console.log('body: ', req.body);
 
     var body = _.pick(req.body, ['email', 'password']);
     var newUser = new UserModel(body);
@@ -61,7 +82,7 @@ app.post('/users', (req, res) =>
     .catch(
     (e) => 
     {
-        console.log('Unable to save todo: ', e);
+        //console.log('Unable to save user: ', e);
 
         res.status(400).send('An error occurred: ' + e);
     });

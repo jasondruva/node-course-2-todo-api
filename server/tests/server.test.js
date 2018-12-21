@@ -3,29 +3,109 @@ const request = require('supertest');
 
 const {app} = require('./../server');
 const {TodoModel} = require('./../models/todo-model');
+const {UserModel} = require('./../models/user-model');
 const {ObjectID} = require('mongodb');
+const {todos, populateTodos, users, populateUsers} = require('./seed/seed');
 
-const todos = 
-[
-    {
-        _id: new ObjectID(),
-        text: "Todo 1"        
-    },
-    {
-        _id: new ObjectID(),
-        text: "Todo 2",
-        completed: true,
-        completedAt: 123
-    }
-];
+beforeEach(populateUsers);
+beforeEach(populateTodos);
 
-beforeEach((done) =>
-{
-    TodoModel.deleteMany({}).then(() =>
+describe('POST /user', () => {
+    it('Should create a new user (200)', (done) => {                
+        var email = 'test11@test11.test';
+        var password = 'pass1234';
+
+        request(app)
+            .post('/users')
+            .send({
+                email: email,
+                password: password
+            })
+            .expect(200)
+            .expect((res) => {                
+                expect(res.headers['x-auth']).toBeTruthy();
+                expect(res.body._id).toBeTruthy();
+                expect(res.body.email).toEqual(email);
+            })
+            .end((err) =>
+            {
+                if(err)
+                {
+                    done();
+                }
+
+                UserModel.findOne({email}).then((user) =>
+                {
+                    expect(user).toBeTruthy();
+                    expect(user.password).not.toEqual(password);
+
+                    done();
+                });
+            });
+    });
+
+    it('Should NOT create a new user due to invalid data (400)', (done) => 
     {
-        return TodoModel.insertMany(todos);        
-    })
-    .then(() => done());
+        var userId = new ObjectID();
+        var email = 'test22@test22';
+
+        request(app)
+            .post('/users')
+            .send({
+                email: email,
+                password: 'pass1234'
+            })
+            .expect(400)            
+            .end(done);
+    });
+
+    it('Should NOT create a new user when email already exists (400)', (done) => {
+        request(app)
+            .post('/users')
+            .send({
+                email: users[0].email,
+                password: 'pass1234'
+            })
+            .expect(400)           
+            .end(done);
+    });
+});
+
+describe('GET /users/me (200)', () => {
+    it('Should get a user', (done) => 
+    {
+        var user1 = users[0];
+
+        //console.log('USER1: ', user1);
+
+        //console.log(JSON.stringify(todos, undefined, 4));
+        request(app)            
+            .get(`/users/me`)            
+            .set('x-auth', user1.tokens[0].token)
+            .expect(200)
+            .expect((res) => 
+            {
+                expect(res.body._id).toBe(user1._id.toHexString());
+                expect(res.body.email).toBe(user1.email);
+            })
+            .end(done);
+    });
+
+    it('Should NOT get a user (401)', (done) => {
+        var user2 = users[1];
+
+        //console.log('USER2: ', user2);
+
+        //console.log(JSON.stringify(todos, undefined, 4));
+        request(app)
+            .get(`/users/me`)
+            .expect(401)
+            .expect((res) => 
+            {
+                expect(res.body).toEqual({});
+            })
+            .end(done);
+    });
 });
 
 describe('POST /todos', () =>
